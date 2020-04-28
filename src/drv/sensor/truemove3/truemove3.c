@@ -205,15 +205,15 @@ deltas_t truemove3_get_deltas()
 
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
-        if(truemove3DeltaX > __INT8_MAX__)
+        if(truemove3DeltaX > __INT16_MAX__)
         {
-            deltas.dx = __INT8_MAX__;
-            truemove3DeltaX -= __INT8_MAX__;
+            deltas.dx = __INT16_MAX__;
+            truemove3DeltaX -= __INT16_MAX__;
         }
-        else if(truemove3DeltaX < -__INT8_MAX__)
+        else if(truemove3DeltaX < -__INT16_MAX__)
         {
-            deltas.dx = -__INT8_MAX__;
-            truemove3DeltaX += __INT8_MAX__;
+            deltas.dx = -__INT16_MAX__;
+            truemove3DeltaX += __INT16_MAX__;
         }
         else
         {
@@ -221,15 +221,15 @@ deltas_t truemove3_get_deltas()
             truemove3DeltaX = 0;
         }
 
-        if(truemove3DeltaY > __INT8_MAX__)
+        if(truemove3DeltaY > __INT16_MAX__)
         {
-            deltas.dy = __INT8_MAX__;
-            truemove3DeltaY -= __INT8_MAX__;
+            deltas.dy = __INT16_MAX__;
+            truemove3DeltaY -= __INT16_MAX__;
         }
-        else if(truemove3DeltaY < -__INT8_MAX__)
+        else if(truemove3DeltaY < -__INT16_MAX__)
         {
-            deltas.dy = -__INT8_MAX__;
-            truemove3DeltaY += __INT8_MAX__;
+            deltas.dy = -__INT16_MAX__;
+            truemove3DeltaY += __INT16_MAX__;
         }
         else
         {

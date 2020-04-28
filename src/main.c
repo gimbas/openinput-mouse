@@ -112,7 +112,25 @@ void hid_task(void)
     deltas_t deltas = target_sensor_deltas_get();
     int8_t vertical = target_wheel_get();
 
-    tud_hid_mouse_report(REPORT_ID_MOUSE, buttons, deltas.dx, deltas.dy, vertical, 0);
+	typedef struct __attribute__ ((packed))
+	{
+		uint8_t buttons; /**< buttons mask for currently pressed buttons in the mouse. */
+		int16_t  x;       /**< Current delta x movement of the mouse. */
+		int16_t  y;       /**< Current delta y movement on the mouse. */
+		int8_t  wheel;   /**< Current delta wheel movement on the mouse. */
+		int8_t  pan;     // using AC Pan
+	} hid_mouse_alt_report_t;
+
+	hid_mouse_alt_report_t report =
+	{
+		.buttons = buttons,
+		.x       = deltas.dx,
+		.y       = deltas.dy,
+		.wheel   = vertical,
+		.pan     = 0
+	};
+
+	tud_hid_report(REPORT_ID_MOUSE, &report, sizeof(report));
   }
 }
 
