@@ -25,6 +25,7 @@ include_dirs = [
     'src',
 	'src/usb',
     'src/target',
+	'src/list',
     'src/drv/sensor/truemove3',
     'external/tinyusb/src',
     'external/tinyusb/src/class/hid',
