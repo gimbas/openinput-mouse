@@ -10,7 +10,8 @@ endif
 
 sources = [
     'src/main.c',
-    'src/usb_descriptors.c',
+    'src/usb/usb_descriptors.c',
+    'src/usb/usb.c',
     'src/drv/sensor/truemove3/truemove3.c',
     'external/tinyusb/src/tusb.c',
     'external/tinyusb/src/class/hid/hid_device.c',
@@ -22,6 +23,7 @@ sources = [
 include_dirs = [
     'config/',
     'src',
+	'src/usb',
     'src/target',
     'src/drv/sensor/truemove3',
     'external/tinyusb/src',
