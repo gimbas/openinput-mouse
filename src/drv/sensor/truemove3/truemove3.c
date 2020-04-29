@@ -183,6 +183,11 @@ uint8_t truemove3_init(uint8_t* firmware)
     return sromId;
 }
 
+void truemove3_set_cpi(uint16_t cpi)
+{
+	truemove3_write(TRUEMOVE3_REG_CONFIG1, TRUEMOVE3_CPI_(cpi));
+}
+
 void truemove3_task()
 {
     if(motionFlag)

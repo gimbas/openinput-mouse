@@ -2,6 +2,10 @@
 
 #include "list.h"
 
+//--------------------------------------------------------------------
+// Functions
+//--------------------------------------------------------------------
+
 // Allocates a new list_node_t. NULL on failure.
 list_node_t* list_node_new(void* val)
 {
@@ -37,6 +41,9 @@ list_t* list_new()
 // Free the list.
 void list_destroy(list_t* self)
 {
+	if(!self)
+		return;
+
 	unsigned int len = self->len;
 	list_node_t *next;
 	list_node_t *curr = self->head;
@@ -58,7 +65,7 @@ void list_destroy(list_t* self)
 // Append the given node to the list and return the node, NULL on failure.
 list_node_t* list_rpush(list_t* self, list_node_t* node)
 {
-	if(!node)
+	if(!node || !self)
 		return NULL;
 
 	if(self->len)
@@ -81,7 +88,7 @@ list_node_t* list_rpush(list_t* self, list_node_t* node)
 // Return / detach the last node in the list, or NULL.
 list_node_t* list_rpop(list_t* self)
 {
-	if(!self->len)
+	if(!self->len || !self)
 		return NULL;
 
 	list_node_t* node = self->tail;
@@ -98,7 +105,7 @@ list_node_t* list_rpop(list_t* self)
 // Prepend the given node to the list and return the node, NULL on failure.
 list_node_t* list_lpush(list_t* self, list_node_t* node)
 {
-	if(!node)
+	if(!node || !self)
 		return NULL;
 
 	if(self->len)
@@ -121,7 +128,7 @@ list_node_t* list_lpush(list_t* self, list_node_t* node)
 // Return / detach the first node in the list, or NULL.
 list_node_t* list_lpop(list_t* self)
 {
-	if(!self->len)
+	if(!self->len || !self)
 		return NULL;
 
 	list_node_t *node = self->head;
@@ -138,6 +145,9 @@ list_node_t* list_lpop(list_t* self)
 // Return the node associated to val or NULL.
 list_node_t* list_find(list_t* self, void* val)
 {
+	if(!self)
+		return NULL;
+
 	list_iterator_t *it = list_iterator_new(self, LIST_HEAD);
 	list_node_t *node;
 
@@ -168,6 +178,9 @@ list_node_t* list_find(list_t* self, void* val)
 // Return the node at the given index or NULL.
 list_node_t* list_at(list_t* self, int index)
 {
+	if(!self)
+		return NULL;
+
 	list_direction_t direction = LIST_HEAD;
 
 	if(index < 0)
@@ -194,6 +207,9 @@ list_node_t* list_at(list_t* self, int index)
 // Remove the given node from the list, freeing it and it's value.
 void list_remove(list_t* self, list_node_t* node)
 {
+	if(!self)
+		return;
+
 	node->prev ? (node->prev->next = node->next) : (self->head = node->next);
 
 	node->next ? (node->next->prev = node->prev) : (self->tail = node->prev);
@@ -209,6 +225,9 @@ void list_remove(list_t* self, list_node_t* node)
 // Allocate a new list_iterator_t. NULL on failure. Accepts a direction, which may be LIST_HEAD or LIST_TAIL.
 list_iterator_t* list_iterator_new(list_t* list, list_direction_t direction)
 {
+	if(!list)
+		return NULL;
+
 	list_node_t *node = ((direction == LIST_HEAD) ? list->head : list->tail);
 	return list_iterator_new_from_node(node, direction);
 }
@@ -216,6 +235,9 @@ list_iterator_t* list_iterator_new(list_t* list, list_direction_t direction)
 // Allocate a new list_iterator_t with the given start node. NULL on failure.
 list_iterator_t* list_iterator_new_from_node(list_node_t *node, list_direction_t direction)
 {
+	if(!node)
+		return NULL;
+
 	list_iterator_t *self;
 
 	if(!(self = malloc(sizeof(list_iterator_t)) ))
@@ -230,6 +252,9 @@ list_iterator_t* list_iterator_new_from_node(list_node_t *node, list_direction_t
 // Return the next list_node_t or NULL when no more nodes remain in the list.
 list_node_t* list_iterator_next(list_iterator_t *self)
 {
+	if(!self)
+		return NULL;
+
 	list_node_t *curr = self->next;
 
 	if(curr)
@@ -241,6 +266,9 @@ list_node_t* list_iterator_next(list_iterator_t *self)
 // Free the list iterator.
 void list_iterator_destroy(list_iterator_t* self)
 {
+	if(!self)
+		return;
+
 	free(self);
 
 	self = NULL;

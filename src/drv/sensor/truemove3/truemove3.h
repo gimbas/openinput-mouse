@@ -73,6 +73,8 @@
 
 uint8_t truemove3_init(uint8_t* firmware);
 
+void truemove3_set_cpi(uint16_t cpi);
+
 void truemove3_task();
 
 void truemove3_motion_event();

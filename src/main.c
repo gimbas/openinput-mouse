@@ -15,28 +15,14 @@
 // Enums and data types
 //--------------------------------------------------------------------
 
-/* Blink pattern
- * - 250 ms  : device not mounted
- * - 1000 ms : device mounted
- * - 2500 ms : device is suspended
- */
-enum  {
-  BLINK_NOT_MOUNTED = 500,
-  BLINK_MOUNTED = 250,
-  BLINK_SUSPENDED = 2500,
-};
-
 //--------------------------------------------------------------------
 // Variables
 //--------------------------------------------------------------------
-
-static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
 //--------------------------------------------------------------------
 // Function declaration
 //--------------------------------------------------------------------
 
-void leds_task(void);
 void hid_task(void);
 
 //--------------------------------------------------------------------
@@ -46,18 +32,18 @@ void hid_task(void);
 /*------------- MAIN -------------*/
 int main(void)
 {
-  tusb_init();
+	load_profiles();
 
-  while (1)
-  {
-    target_tasks();
+	tusb_init();
 
-    hid_task();
+	while (1)
+	{
+		target_tasks();
 
-    tud_task(); // tinyusb device task
+		hid_task();
 
-    leds_task();
-  }
+		tud_task(); // tinyusb device task
+	}
 
-  return 0;
+	return 0;
 }

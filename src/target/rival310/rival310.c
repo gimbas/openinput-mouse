@@ -22,29 +22,29 @@
 
 void _usb_hp_can_tx_isr()
 {
-  tud_int_handler(0);
+  	tud_int_handler(0);
 }
 
 void _usb_lp_can_rx0_isr()
 {
-  tud_int_handler(0);
+  	tud_int_handler(0);
 }
 
 void _usb_wakeup_isr()
 {
-  tud_int_handler(0);
+  	tud_int_handler(0);
 }
 
 void dcd_connect(uint8_t rhport)
 {
-  (void) rhport;
-  GPIOA->BSRR = BIT(15);
+	(void) rhport;
+	GPIOA->BSRR = BIT(15);
 }
 
 void dcd_disconnect(uint8_t rhport)
 {
-  (void) rhport;
-  GPIOA->BSRR = (BIT(15) << 16);
+	(void) rhport;
+	GPIOA->BSRR = (BIT(15) << 16);
 }
 
 //--------------------------------------------------------------------
@@ -53,37 +53,113 @@ void dcd_disconnect(uint8_t rhport)
 
 void _exti3_isr()
 {
-  if(EXTI->PR & EXTI_PR_PR3)
-  {
-    EXTI->PR = EXTI_PR_PR3;
+	if(EXTI->PR & EXTI_PR_PR3)
+	{
+		EXTI->PR = EXTI_PR_PR3;
 
-    truemove3_motion_event();
-  }
+		truemove3_motion_event();
+	}
 }
 
 uint8_t truemove3_spi_transfer(uint8_t byte)
 {
-  return spi_transfer_byte(byte);
+	return spi_transfer_byte(byte);
 }
 
 void truemove3_select()
 {
-  GPIOA->BSRR = (BIT(4) << 16);
+	GPIOA->BSRR = (BIT(4) << 16);
 }
 
 void truemove3_unselect()
 {
-  GPIOA->BSRR = BIT(4);
+	GPIOA->BSRR = BIT(4);
 }
 
 void truemove3_delay_ms(uint32_t ticks)
 {
-  delay_ms(ticks);
+	delay_ms(ticks);
 }
 
 void truemove3_delay_us(uint32_t ticks)
 {
-  delay_us(ticks);
+	delay_us(ticks);
+}
+
+//--------------------------------------------------------------------
+// profiles API
+//--------------------------------------------------------------------
+
+void target_load_profiles(list_t* profile_list)
+{
+	profile_t* profile;
+
+	profile_t profiles_lu[7];
+
+	profiles_lu[0].dpi = 400;
+	profiles_lu[0].color.r = 255;
+	profiles_lu[0].color.g = 0;
+	profiles_lu[0].color.b = 0;
+
+	profiles_lu[1].dpi = 800;
+	profiles_lu[1].color.r = 0;
+	profiles_lu[1].color.g = 255;
+	profiles_lu[1].color.b = 0;
+
+	profiles_lu[2].dpi = 1200;
+	profiles_lu[2].color.r = 255;
+	profiles_lu[2].color.g = 255;
+	profiles_lu[2].color.b = 0;
+
+	profiles_lu[3].dpi = 1600;
+	profiles_lu[3].color.r = 0;
+	profiles_lu[3].color.g = 0;
+	profiles_lu[3].color.b = 255;
+
+	profiles_lu[4].dpi = 2000;
+	profiles_lu[4].color.r = 255;
+	profiles_lu[4].color.g = 0;
+	profiles_lu[4].color.b = 255;
+
+	profiles_lu[5].dpi = 5000;
+	profiles_lu[5].color.r = 0;
+	profiles_lu[5].color.g = 255;
+	profiles_lu[5].color.b = 255;
+
+	profiles_lu[6].dpi = 12000;
+	profiles_lu[6].color.r = 255;
+	profiles_lu[6].color.g = 255;
+	profiles_lu[6].color.b = 255;
+
+	for(uint8_t i = 0; i < 7; i++)
+	{
+		profile = (profile_t*)malloc(sizeof(profile_t));
+
+		profile->dpi = profiles_lu[i].dpi;
+		profile->color.r = profiles_lu[i].color.r;
+		profile->color.g = profiles_lu[i].color.g;
+		profile->color.b = profiles_lu[i].color.b;
+
+		list_rpush(profile_list, list_node_new((void*)profile));
+	}
+}
+void target_save_profiles(list_t* profile_list)
+{
+	(void) profile_list;
+}
+
+uint8_t target_get_default_profile_index()
+{
+	return 2;
+}
+void target_set_default_profile_index(uint8_t index)
+{
+	(void) index;
+}
+
+void target_set_dpi(uint16_t dpi)
+{
+	truemove3_set_cpi(dpi);
 }
 
 //--------------------------------------------------------------------
@@ -92,9 +168,21 @@ void truemove3_delay_us(uint32_t ticks)
 
 void target_tasks()
 {
-  truemove3_task();
+	truemove3_task();
 
-  encoder_task();
+	encoder_task();
+
+	static uint32_t last_dpi_event = 0;
+	static uint8_t last_state = 0;
+	uint8_t dpi_btn = !(GPIOB->IDR & BIT(3));
+	if((dpi_btn != last_state) && (target_ticks() > last_dpi_event + 25))
+	{
+		if(dpi_btn)
+			profile_key_event();
+
+		last_state = dpi_btn;
+		last_dpi_event = target_ticks();
+	}
 }
 
 uint64_t target_ticks()
@@ -208,7 +296,6 @@ void init()
   AFIO->EXTICR[3] = 0;
 
   leds_init();
-  target_leds_write(255, 255, 0);
 
   spi_init(SPI_MODE3, SPI_CLOCK_DIV_64, SPI_MSB_FIRST);
 
