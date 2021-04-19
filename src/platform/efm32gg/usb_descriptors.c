@@ -5,6 +5,7 @@
 
 #include "protocol/reports.h"
 #include "util/data.h"
+#include "util/reports.h"
 
 #define CFG_TUSB_CONFIG_FILE "targets/efm32gg12-generic/tusb_config.h"
 #include "tusb.h"
@@ -31,42 +32,8 @@ const u8 desc_device[] = {
 	/* clang-format on */
 };
 
-/* HID Mouse report descriptor */
-const u8 desc_hid_mouse_report[] = {
-	/* clang-format off */
-	0x05, 0x01,	/* USAGE_PAGE (Generic Desktop) */
-	0x09, 0x02,	/* USAGE (Mouse) */
-	0xa1, 0x01,	/* COLLECTION (Application) */
-	0x09, 0x01,		/* USAGE (Pointer) */
-	0xa1, 0x00,		/* COLLECTION (Physical) */
-	0x85, 0x01,			/* REPORT_ID (0x01) */
-	0x05, 0x01,			/* USAGE_PAGE (Generic Desktop) */
-	0x09, 0x30,			/* USAGE (X) */
-	0x09, 0x31,			/* USAGE (Y) */
-	0x09, 0x38,			/* USAGE (WHEEL) */
-	0x15, 0x81,			/* LOGICAL_MINIMUM (-127) */
-	0x25, 0x7f,			/* LOGICAL_MAXIMUM (127) */
-	0x75, 0x08,			/* REPORT_SIZE (8) */
-	0x95, 0x03,			/* REPORT_COUNT (3) */
-	0x81, 0x06,			/* INPUT (Data,Var,Rel) */
-	0x05, 0x09,			/* USAGE_PAGE (Button) */
-	0x19, 0x01,			/* USAGE_MINIMUM (Button 1) */
-	0x29, 0x03,			/* USAGE_MAXIMUM (Button 3) */
-	0x15, 0x00,			/* LOGICAL_MINIMUM (0) */
-	0x25, 0x01,			/* LOGICAL_MAXIMUM (1) */
-	0x95, 0x03,			/* REPORT_COUNT (3) */
-	0x75, 0x01,			/* REPORT_SIZE (1) */
-	0x81, 0x02,			/* INPUT (Data,Var,Abs) */
-	0x95, 0x01,			/* REPORT_COUNT (1) */
-	0x75, 0x05,			/* REPORT_SIZE (5) */
-	0x81, 0x01,			/* INPUT (Cnst,Var,Abs) */
-	0xc0,			/* END_COLLECTION */
-	0xc0,		/* END_COLLECTION */
-	/* clang-format on */
-};
-
 /* HID Report Descriptor */
-static u8 desc_hid_report[sizeof(oi_rdesc) + sizeof(desc_hid_mouse_report)];
+static u8 desc_hid_report[sizeof(oi_rdesc) + sizeof(desc_hid_keyboard_report)];
 
 /* Configuration Descriptor */
 const u8 desc_configuration[] = {
@@ -132,8 +99,8 @@ u8 const *tud_hid_descriptor_report_cb(u8 itf)
 
 	memcpy(desc_hid_report, oi_rdesc, sizeof(oi_rdesc)); /* protocol report descriptor */
 	memcpy(desc_hid_report + sizeof(oi_rdesc),
-	       desc_hid_mouse_report,
-	       sizeof(desc_hid_mouse_report)); /* mouse report descriptor */
+	       desc_hid_keyboard_report,
+	       sizeof(desc_hid_keyboard_report)); /* keyboard report descriptor */
 
 	return (u8 const *) desc_hid_report;
 }

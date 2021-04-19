@@ -7,6 +7,9 @@
 
 #include "util/types.h"
 
+#define MOUSE_REPORT_ID	   0x01
+#define KEYBOARD_REPORT_ID 0x02
+
 struct mouse_report {
 	u8 id;
 	s8 x;
