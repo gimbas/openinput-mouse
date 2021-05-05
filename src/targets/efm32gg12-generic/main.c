@@ -6,6 +6,8 @@
 #include <em_device.h>
 
 #include "util/data.h"
+#include "util/hid_descriptors.h"
+#include "util/keycodes.h"
 #include "util/types.h"
 
 #include "platform/efm32gg/cmu.h"
@@ -14,6 +16,9 @@
 #include "platform/efm32gg/hal/hid.h"
 #include "platform/efm32gg/systick.h"
 #include "platform/efm32gg/usb.h"
+
+#include "keyboard_engine/keyboard_engine.h"
+#include "platform/efm32gg/driver/key_matrix.h"
 
 #define CFG_TUSB_CONFIG_FILE "targets/efm32gg12-generic/tusb_config.h"
 #include "tusb.h"
@@ -44,11 +49,174 @@ void main()
 
 	struct gpio_pin_t led_io = {.port = GPIO_PORT_A, .pin = 12};
 
+	struct gpio_pin_t col_ios[] = {
+		{.port = GPIO_PORT_E, .pin = 11}, /* 0 */
+		{.port = GPIO_PORT_E, .pin = 12}, /* 1 */
+		{.port = GPIO_PORT_E, .pin = 13}, /* 2 */
+		{.port = GPIO_PORT_E, .pin = 14}, /* 3 */
+		{.port = GPIO_PORT_E, .pin = 15}, /* 4 */
+		{.port = GPIO_PORT_A, .pin = 15}, /* 5 */
+		{.port = GPIO_PORT_A, .pin = 0}, /* 6 */
+		{.port = GPIO_PORT_A, .pin = 1}, /* 7 */
+		{.port = GPIO_PORT_A, .pin = 2}, /* 8 */
+		{.port = GPIO_PORT_A, .pin = 3}, /* 9 */
+		{.port = GPIO_PORT_A, .pin = 4}, /* 10 */
+		{.port = GPIO_PORT_A, .pin = 5}, /* 11 */
+		{.port = GPIO_PORT_A, .pin = 6}, /* 12 */
+		{.port = GPIO_PORT_B, .pin = 3}, /* 13 */
+		{.port = GPIO_PORT_B, .pin = 4}, /* 14 */
+		{.port = GPIO_PORT_B, .pin = 5}, /* 15 */
+		{.port = GPIO_PORT_B, .pin = 6}, /* 16 */
+		{.port = GPIO_PORT_C, .pin = 4}, /* 17 */
+		{.port = GPIO_PORT_C, .pin = 5}, /* 18 */
+		{.port = GPIO_PORT_A, .pin = 8}, /* 19 */
+		{.port = GPIO_PORT_A, .pin = 12}, /* 20 */
+	};
+
+	struct gpio_pin_t row_ios[] = {
+		{.port = GPIO_PORT_A, .pin = 13}, /* 0 */
+		{.port = GPIO_PORT_A, .pin = 14}, /* 1 */
+		{.port = GPIO_PORT_B, .pin = 11}, /* 2 */
+		{.port = GPIO_PORT_B, .pin = 12}, /* 3 */
+		{.port = GPIO_PORT_D, .pin = 0}, /* 4 */
+		{.port = GPIO_PORT_D, .pin = 1}, /* 5 */
+		{.port = GPIO_PORT_D, .pin = 2}, /* 6 */
+		{.port = GPIO_PORT_D, .pin = 3}, /* 7 */
+		{.port = GPIO_PORT_D, .pin = 4}, /* 8 */
+		{.port = GPIO_PORT_D, .pin = 5}, /* 9 */
+		{.port = GPIO_PORT_D, .pin = 6}, /* 10 */
+		{.port = GPIO_PORT_D, .pin = 8}, /* 11 */
+	};
+
 	gpio_init_config(&gpio_config);
 
 	gpio_setup_pin(&gpio_config, led_io, GPIO_MODE_WIREDAND, 0);
 
+	for (size_t i = 0; i < 21; i++) gpio_setup_pin(&gpio_config, col_ios[i], GPIO_MODE_PUSHPULL, 0);
+
+	for (size_t i = 0; i < 12; i++) gpio_setup_pin(&gpio_config, row_ios[i], GPIO_MODE_INPUTPULLFILTER, 0);
+
 	gpio_apply_config(gpio_config);
+
+	/* key engine */
+	struct key_t key_data[16 * 6] = {};
+
+	struct key_matrix_t key_matrix = key_matrix_init(col_ios, 16, row_ios, 6, key_data, 1);
+
+	struct key_t *key_list[16 * 6] = {};
+
+	for (u16 i = 0; i < 16 * 6; i++) key_list[i] = &key_data[i];
+
+	struct layer_node_t layer0[16 * 6] = {
+		{.node_function = layer_node_regular, .data[0] = keycode_A},
+		{.node_function = layer_node_regular, .data[0] = keycode_B},
+		{.node_function = layer_node_regular, .data[0] = keycode_C},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+		{.node_function = layer_node_none},
+	};
+	struct layer_node_t active_layer[16 * 6];
+	struct layer_node_t *layer_list = layer0;
+
+	struct keyboard_engine_config_t keyboard_engine_config = {
+		.key_list = key_list,
+		.key_list_size = 16 * 6,
+		.layer_list = &layer_list,
+		.layer_list_size = 1,
+		.active_layer = active_layer,
+		.tap_interval = 200,
+	};
+
+	keyboard_engine_load_layer(keyboard_engine_config, 0);
 
 	struct hid_hal_t hid_hal;
 	u8 info_functions[] = {
@@ -70,7 +238,31 @@ void main()
 
 	usb_init();
 
+	struct keyboard_report_t keyboard_report;
+	struct keyboard_engine_return_t keyboard_engine_return;
+
 	for (;;) {
 		tud_task();
+
+		key_matrix_scan(&key_matrix);
+		keyboard_engine_return = keyboard_engine_update(keyboard_engine_config);
+
+		if (tud_hid_n_ready(2)) {
+			static u8 last_report_had_data;
+
+			//if(keyboard_engine_return.data_present || last_report_had_data)
+			{
+				memset(&keyboard_report, 0, sizeof(keyboard_report));
+
+				keyboard_report.id = KEYBOARD_REPORT_ID;
+				//for(size_t i = 0; i < 6; i++)
+				//	keyboard_report.keys[i] = keyboard_engine_return.keycodes[i];
+				keyboard_report.keys[0] = 0x0A;
+
+				last_report_had_data = keyboard_engine_return.data_present;
+
+				tud_hid_n_report(2, 0, &keyboard_report, sizeof(keyboard_report));
+			}
+		}
 	}
 }

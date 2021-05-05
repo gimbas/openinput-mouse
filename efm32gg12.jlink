@@ -1,0 +1,5 @@
+r
+loadfile build/out/openinput-efm32gg12-generic-r208-35db4d7-dirty.hex
+r
+go
+exit

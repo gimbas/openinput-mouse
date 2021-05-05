@@ -142,10 +142,12 @@ class EFM32GG12Family(BuildConfiguration):
             'usb.c',
             'usb_descriptors.c',
             'hal/hid.c',
+            'driver/key_matrix.c',
         )
 
     def c_flags(self) -> List[str]:
         return [
+            '-g',
             '-Os',
             '-nostdlib',
             '-nostartfiles',

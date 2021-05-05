@@ -351,6 +351,7 @@ class _BuildConfiguration(_BuildConfigurationBase):
         self.source += [
             'protocol/protocol.c',
             'driver/pixart/pixart_pmw.c',
+			'keyboard_engine/keyboard_engine.c',
         ]
 
         # some dependencies require us to define headers, let's add the target path to their include flags

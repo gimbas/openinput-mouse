@@ -10,7 +10,7 @@
 #define MOUSE_REPORT_ID	   0x01
 #define KEYBOARD_REPORT_ID 0x02
 
-struct mouse_report {
+struct mouse_report_t {
 	u8 id;
 	s8 x;
 	s8 y;
@@ -54,7 +54,7 @@ static const u8 desc_hid_mouse_report[] = {
 	/* clang-format on */
 };
 
-struct keyboard_report {
+struct keyboard_report_t {
 	u8 id;
 	u8 modifiers;
 	u8 reserved;

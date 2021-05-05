@@ -1,0 +1,5 @@
+r
+loadfile build/stm32f1-generic/out/openinput-stm32f1-generic-r215-1a9ff20-dirty.hex
+r
+go
+exit
