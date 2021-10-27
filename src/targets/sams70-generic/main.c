@@ -16,9 +16,6 @@
 #include "platform/samx7x/usb.h"
 #include "platform/samx7x/wdt.h"
 
-#include "driver/pixart/pixart_pmw.h"
-#include "pixart_blobs.h"
-
 #include "protocol/protocol.h"
 
 #define CFG_TUSB_CONFIG_FILE "targets/sams70-generic/tusb_config.h"
@@ -38,88 +35,57 @@ void main()
 
 	pio_init();
 
-#if defined(SENSOR_ENABLED) && SENSOR_DRIVER == PIXART_PMW
-	struct pio_pin_t sensor_motion_io = SENSOR_MOTION_IO;
-	struct pio_pin_t sensor_cs_io = SENSOR_INTERFACE_CS_IO;
-	struct pio_pin_t sensor_sck_io = SENSOR_INTERFACE_SCK_IO;
-	struct pio_pin_t sensor_miso_io = SENSOR_INTERFACE_MISO_IO;
-	struct pio_pin_t sensor_mosi_io = SENSOR_INTERFACE_MOSI_IO;
+	struct pio_pin_t cs_io = {.port = PIO_PORT_A, .pin = 10};
+	struct pio_pin_t miso_io = {.port = PIO_PORT_A, .pin = 12};
+	struct pio_pin_t mosi_io = {.port = PIO_PORT_A, .pin = 13};
+	struct pio_pin_t sclk_io = {.port = PIO_PORT_B, .pin = 13};
 
-	struct pio_config_t pio_config = PIO_DEFAULT_CONFIG;
+	struct pio_config_t io_conf = PIO_DEFAULT_CONFIG;
 
-	pio_config.direction = PIO_DIRECTION_IN;
-	pio_config.pull = PIO_PULL_UP;
-	pio_config.peripheral_control = 0;
-	pio_config.mux = PIO_MUX_A;
+	io_conf.direction = PIO_DIRECTION_OUT;
+	io_conf.high_drive = 1;
+	io_conf.pull = PIO_PULL_UP;
+	io_conf.peripheral_control = 0;
+	io_conf.mux = PIO_MUX_A;
 
-	// gpio_setup_pin(&gpio_config, sensor_motion_io, GPIO_MODE_INPUT | GPIO_CNF_INPUT_PULL, 1);
+	pio_config(cs_io, io_conf);
 
-	// gpio_setup_pin(&gpio_config, sensor_cs_io, GPIO_MODE_OUTPUT_10MHZ | GPIO_CNF_OUTPUT_GENERAL_PUSH_PULL, 1);
-	// gpio_setup_pin(&gpio_config, sensor_sck_io, GPIO_MODE_OUTPUT_50MHZ | GPIO_CNF_OUTPUT_ALTERNATE_PUSH_PULL, 0);
-	// gpio_setup_pin(&gpio_config, sensor_miso_io, GPIO_MODE_INPUT | GPIO_CNF_INPUT_FLOATING, 0);
-	// gpio_setup_pin(&gpio_config, sensor_mosi_io, GPIO_MODE_OUTPUT_50MHZ | GPIO_CNF_OUTPUT_ALTERNATE_PUSH_PULL, 0);
+	io_conf.peripheral_control = 1;
 
-	spi_init_interface(SENSOR_INTERFACE, SPI_MODE3, SENSOR_INTERFACE_SPEED);
+	pio_config(mosi_io, io_conf);
+	pio_config(sclk_io, io_conf);
 
-	struct spi_device_t sensor_spi_device = spi_init_device(SENSOR_INTERFACE, sensor_cs_io, SENSOR_INTERFACE_CS_POL);
-	struct spi_hal_t sensor_spi_hal = spi_hal_init(&sensor_spi_device);
+	io_conf.direction = PIO_DIRECTION_IN;
 
-	struct ticks_hal_t ticks_hal = ticks_hal_init();
+	pio_config(miso_io, io_conf);
 
-	struct pixart_pmw_driver_t sensor = pixart_pmw_init((u8 *) SENSOR_FIRMWARE_BLOB, sensor_spi_hal, ticks_hal);
+	qspi_init_interface(SPI_MODE3, 1000000);
 
-#endif
+	struct qspi_device_t sensor_spi_device = qspi_init_device(cs_io, 0);
 
-	struct hid_hal_t hid_hal;
-	u8 info_functions[] = {
-		OI_FUNCTION_VERSION,
-		OI_FUNCTION_FW_INFO,
-		OI_FUNCTION_SUPPORTED_FUNCTION_PAGES,
-		OI_FUNCTION_SUPPORTED_FUNCTIONS,
-	};
+	// struct hid_hal_t hid_hal;
+	// u8 info_functions[] = {
+	// 	OI_FUNCTION_VERSION,
+	// 	OI_FUNCTION_FW_INFO,
+	// 	OI_FUNCTION_SUPPORTED_FUNCTION_PAGES,
+	// 	OI_FUNCTION_SUPPORTED_FUNCTIONS,
+	// };
 
-	/* create protocol config */
-	struct protocol_config_t protocol_config;
-	memset(&protocol_config, 0, sizeof(protocol_config));
-	protocol_config.device_name = "openinput Device";
-	protocol_config.hid_hal = hid_hal_init();
-	protocol_config.functions[INFO] = info_functions;
-	protocol_config.functions_size[INFO] = sizeof(info_functions);
+	// /* create protocol config */
+	// struct protocol_config_t protocol_config;
+	// memset(&protocol_config, 0, sizeof(protocol_config));
+	// protocol_config.device_name = "openinput Device";
+	// protocol_config.hid_hal = hid_hal_init();
+	// protocol_config.functions[INFO] = info_functions;
+	// protocol_config.functions_size[INFO] = sizeof(info_functions);
 
-	usb_attach_protocol_config(protocol_config);
+	// usb_attach_protocol_config(protocol_config);
 
-	usb_init();
-
-	struct mouse_report report;
-	u8 new_data = 0;
+	// usb_init();
 
 	for (;;) {
-		tud_task();
-
-#if defined(SENSOR_ENABLED) && SENSOR_DRIVER == PIXART_PMW
-		if (!pio_get(sensor_motion_io)) {
-			pixart_pmw_motion_event(&sensor);
-		}
-
-		if (sensor.motion_flag) {
-			pixart_pmw_read_motion(&sensor);
-
-			new_data = 1;
-		}
-
-		if (tud_hid_n_ready(0) && new_data) {
-			struct deltas_t deltas = pixart_pmw_get_deltas(&sensor);
-
-			/* fill report */
-			memset(&report, 0, sizeof(report));
-			report.id = OI_MOUSE_REPORT_ID;
-			report.x = deltas.dx;
-			report.y = deltas.dy;
-
-			tud_hid_n_report(1, 0, &report, sizeof(report));
-
-			new_data = 0;
-		}
-#endif
+		// tud_task();
+		qspi_transfer_byte(sensor_spi_device, 0x55);
+		delay_ms(500);
 	}
 }

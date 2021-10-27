@@ -44,22 +44,22 @@ void spi_init_interface(enum spi_interface_no interface_no, enum spi_mode mode, 
 	switch (mode) {
 	SPI_MODE0:
 		/* CPOL = 0, CPHA = 0*/
-		mode_config = SPI_CSR_CPOL(0) | SPI_CSR_NCPHA(0);
+		mode_config = 0;
 		break;
 
 	SPI_MODE1:
 		/* CPOL = 0, CPHA = 1*/
-		mode_config = SPI_CSR_CPOL(0) | SPI_CSR_NCPHA(1);
+		mode_config = SPI_CSR_NCPHA_Msk;
 		break;
 
 	SPI_MODE2:
 		/* CPOL = 1, CPHA = 0 */
-		mode_config = SPI_CSR_CPOL(1) | SPI_CSR_NCPHA(0);
+		mode_config = SPI_CSR_CPOL_Msk;
 		break;
 
 	SPI_MODE3:
 		/* CPOL = 1, CPHA = 1*/
-		mode_config = SPI_CSR_CPOL(1) | SPI_CSR_NCPHA(1);
+		mode_config = SPI_CSR_CPOL_Msk | SPI_CSR_NCPHA_Msk;
 		break;
 	}
 	/* Configure control SPI peripheral */
@@ -109,7 +109,7 @@ u8 spi_transfer_byte(struct spi_device_t device, const u8 data)
 	/* wait for transmission done */
 	while (!(((Spi *) device.interface)->SPI_SR & SPI_SR_TXEMPTY_Msk)) continue;
 
-	return (u8) (((Spi *) device.interface)->SPI_RDR & 0xFF);
+	return (u8) ((Spi *) device.interface)->SPI_RDR & 0xFF);
 }
 
 void spi_transfer(struct spi_device_t device, const u8 *src, u32 size, u8 *dst)

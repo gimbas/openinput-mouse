@@ -38,7 +38,10 @@ source = [
 	'exceptions.c',
 	'pio.c',
 	'usb.c',
+	'spi.c',
+	'qspi.c',
 	'usb_descriptors.c',
+	'hal/spi.c',
 	'hal/hid.c',
 ]
 

@@ -6,7 +6,9 @@
 #pragma once
 
 #include "hal/spi.h"
+#include "platform/samx7x/qspi.h"
 #include "platform/samx7x/spi.h"
 #include "util/types.h"
 
-struct spi_hal_t spi_hal_init(struct spi_device_t *drv_data);
+struct spi_hal_t spi_hal_init_spi(struct spi_device_t *drv_data);
+struct spi_hal_t spi_hal_init_qspi(struct qspi_device_t *drv_data);
