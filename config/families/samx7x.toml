@@ -1,5 +1,6 @@
 toolchain = 'arm-none-eabi'
 c_flags = [
+	'-g',
 	'-Os',
 	'-nostdlib',
 	'-nostartfiles',
