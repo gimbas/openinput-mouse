@@ -19,6 +19,15 @@
 #define CFG_TUSB_CONFIG_FILE "targets/efm32gg12-generic/tusb_config.h"
 #include "tusb.h"
 
+#define USB_HID_MODIFIER_LEFT_CTRL   0x01 // KeyLeftControl = 0xe0, /* Keyboard Left Control */
+#define USB_HID_MODIFIER_LEFT_SHIFT  0x02 // KeyLeftShift = 0xe1, /* Keyboard Left Shift */
+#define USB_HID_MODIFIER_LEFT_ALT    0x04 // KeyLeftAlt = 0xe2, /* Keyboard Left Alt */
+#define USB_HID_MODIFIER_LEFT_GUI    0x08 // KeyLeftMeta = 0xe3, /* Keyboard Left GUI */
+#define USB_HID_MODIFIER_RIGHT_CTRL  0x10 // KeyRightControl = 0xe4, /* Keyboard Right Control */
+#define USB_HID_MODIFIER_RIGHT_SHIFT 0x20 // KeyRightShift = 0xe5, /* Keyboard Right Shift */
+#define USB_HID_MODIFIER_RIGHT_ALT   0x40 // KeyRightAlt = 0xe6, /* Keyboard Right Alt */
+#define USB_HID_MODIFIER_RIGHT_GUI   0x80 // KeyRightMeta = 0xe7, /* Keyboard Right GUI */
+
 enum keycodes {
 	None = 0x00, /* No key pressed */
 	ErrorRollover = 0x01, /* Keyboard Error Roll Over ("Phantom Key") */
@@ -316,7 +325,7 @@ static const u8 map[16][6] = {
 		KeyR,
 		KeyF,
 		KeyV,
-		KeySpace,
+		None,
 	},
 	{
 		KeyF6,
@@ -324,7 +333,7 @@ static const u8 map[16][6] = {
 		KeyT,
 		KeyG,
 		KeyB,
-		None,
+		KeySpace,
 	},
 	{
 		KeyF7,
@@ -497,26 +506,75 @@ void main()
 
 	struct keyboard_report report;
 	u8 key_arr[16];
+	u8 modifiers = 0;
+	u8 index = 0;
 
 	for (;;) {
 		tud_task();
 
-		key_arr[0] = 0;
+		memset(key_arr, 0, 6);
+		index = 0;
+		modifiers = 0;
 
 		for (size_t row = 0; row < 16; row++) {
 			gpio_set(row_ios[row], 1);
+			delay_us(100);
 			for (size_t col = 0; col < 6; col++) {
 				if (gpio_get(col_ios[col])) {
-					key_arr[0] = map[row][col];
+					if (index >= 6) {
+						memset(key_arr, ErrorRollover, 6);
+						goto rollover;
+					}
+
+					switch (map[row][col]) {
+						case KeyLeftControl:
+							modifiers |= USB_HID_MODIFIER_LEFT_CTRL;
+							break;
+
+						case KeyLeftShift:
+							modifiers |= USB_HID_MODIFIER_LEFT_SHIFT;
+							break;
+
+						case KeyLeftAlt:
+							modifiers |= USB_HID_MODIFIER_LEFT_ALT;
+							break;
+
+						case KeyLeftMeta:
+							modifiers |= USB_HID_MODIFIER_LEFT_GUI;
+							break;
+
+						case KeyRightControl:
+							modifiers |= USB_HID_MODIFIER_RIGHT_CTRL;
+							break;
+
+						case KeyRightShift:
+							modifiers |= USB_HID_MODIFIER_RIGHT_SHIFT;
+							break;
+
+						case KeyRightAlt:
+							modifiers |= USB_HID_MODIFIER_RIGHT_ALT;
+							break;
+
+						case KeyRightMeta:
+							modifiers |= USB_HID_MODIFIER_RIGHT_GUI;
+							break;
+
+						default:
+							key_arr[index++] = map[row][col];
+							break;
+					}
 				}
 			}
 			gpio_set(row_ios[row], 0);
 		}
 
+	rollover:
+
 		if (tud_hid_ready()) {
 			/* fill report */
 			memset(&report, 0, sizeof(report));
 			report.id = KEYBOARD_REPORT_ID;
+			report.modifiers = modifiers;
 			report.keys[0] = key_arr[0];
 
 			tud_hid_report(0, &report, sizeof(report));

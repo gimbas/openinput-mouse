@@ -5,7 +5,7 @@
 
 /* Common Configuration */
 
-#define CFG_TUSB_MCU OPT_MCU_EFM32GG12
+#define CFG_TUSB_MCU OPT_MCU_EFM32GG
 
 #define CFG_TUSB_OS OPT_OS_NONE
 
