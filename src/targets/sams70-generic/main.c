@@ -108,8 +108,8 @@ void main()
 			/* fill report */
 			memset(&report, 0, sizeof(report));
 			report.id = MOUSE_REPORT_ID;
-			report.x = 1;
-			report.y = 0;
+			report.x = deltas.dx;
+			report.y = deltas.dy;
 
 			tud_hid_n_report(1, 0, &report, sizeof(report));
 
