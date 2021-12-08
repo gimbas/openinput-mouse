@@ -42,6 +42,14 @@ source = [
 	'hal/spi.c',
 ]
 
+[debug]
+c_flags = [
+	'-g',
+]
+ld_flags = [
+	'-g',
+]
+
 [dependencies]
 cmsis-5 = {}
 cmsis-dfp-stm32f1 = {}

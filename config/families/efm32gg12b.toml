@@ -39,6 +39,14 @@ source = [
 	'hal/hid.c',
 ]
 
+[debug]
+c_flags = [
+	'-g',
+]
+ld_flags = [
+	'-g',
+]
+
 [dependencies]
 cmsis-5 = {}
 tinyusb = { target = 'silabs/efm32' }
